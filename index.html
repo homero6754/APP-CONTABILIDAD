@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TPV Profesional - Tienda de Suplementos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fdf8f6',
+                            100: '#fbe8e6',
+                            500: '#e03e2f',
+                            600: '#c53023',
+                            700: '#a52a1e',
+                            900: '#781c13',
+                        },
+                        dark: {
+                            800: '#1e222b',
+                            900: '#13161c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans h-screen flex flex-col overflow-hidden">
+
+    <!-- NAVBAR SUPERIOR -->
+    <header class="bg-dark-900 text-white shadow-md flex justify-between items-center px-4 py-2.5 z-20">
+        <div class="flex items-center space-x-3">
+            <div class="bg-brand-600 p-2 rounded-lg text-white font-bold text-lg flex items-center justify-center shadow">
+                <i class="fa-solid fa-dumbbell"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg tracking-wide leading-tight">SUPLEMENTOS TPV</h1>
+                <p class="text-xs text-slate-400">Terminal Punto de Venta Profesional</p>
+            </div>
+        </div>
+
+        <!-- TABS DE NAVEGACIÓN -->
+        <nav class="flex space-x-1 bg-dark-800 p-1 rounded-xl border border-slate-700">
+            <button onclick="switchTab('pos')" id="tab-pos" class="px-4 py-1.5 rounded-lg text-sm font-semibold transition bg-brand-600 text-white shadow">
+                <i class="fa-solid fa-cash-register mr-1.5"></i> TPV / Caja
+            </button>
+            <button onclick="switchTab('inventory')" id="tab-inventory" class="px-4 py-1.5 rounded-lg text-sm font-semibold transition text-slate-300 hover:text-white hover:bg-slate-700">
+                <i class="fa-solid fa-boxes-stacked mr-1.5"></i> Inventario & Imágenes
+            </button>
+            <button onclick="switchTab('accounting')" id="tab-accounting" class="px-4 py-1.5 rounded-lg text-sm font-semibold transition text-slate-300 hover:text-white hover:bg-slate-700">
+                <i class="fa-solid fa-file-excel mr-1.5 text-emerald-400"></i> Contabilidad Mensual (Excel)
+            </button>
+        </nav>
+
+        <!-- INFO CAJA Y TURNO -->
+        <div class="flex items-center space-x-4">
+            <div class="hidden md:flex flex-col text-right text-xs">
+                <span class="text-slate-400">Turno Actual:</span>
+                <span id="header-shift-badge" class="font-bold text-amber-400 uppercase">Mañana</span>
+            </div>
+            <div class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg flex items-center space-x-2">
+                <span class="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span id="current-user-display" class="text-xs font-medium text-slate-200">Admin</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENEDOR PRINCIPAL DE PESTAÑAS -->
+    <main class="flex-1 overflow-hidden relative">
+
+        <!-- ================= PESTAÑA 1: TPV / CAJA ================= -->
+        <div id="section-pos" class="absolute inset-0 flex flex-col md:flex-row overflow-hidden">
+            
+            <!-- SECCIÓN IZQUIERDA: PRODUCTOS Y CATEGORÍAS -->
+            <div class="flex-1 flex flex-col bg-slate-100 p-3 overflow-hidden border-r border-slate-200">
+                <!-- Buscador y Filtros -->
+                <div class="flex flex-col sm:flex-row gap-2 mb-3">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
+                        <input type="text" id="product-search" placeholder="Buscar suplemento (ej. Whey, Creatina, IO.GENIX...)" 
+                               oninput="filterProducts()" 
+                               class="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm">
+                    </div>
+                    <div class="flex gap-1 overflow-x-auto pb-1" id="category-filters">
+                        <button onclick="filterCategory('todos')" class="cat-btn px-3 py-2 rounded-xl text-xs font-bold bg-brand-600 text-white whitespace-nowrap shadow-sm">Todos</button>
+                        <button onclick="filterCategory('Proteínas')" class="cat-btn px-3 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 border border-slate-300 whitespace-nowrap hover:bg-slate-50">Proteínas</button>
+                        <button onclick="filterCategory('Creatina')" class="cat-btn px-3 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 border border-slate-300 whitespace-nowrap hover:bg-slate-50">Creatina</button>
+                        <button onclick="filterCategory('Pre-Entreno')" class="cat-btn px-3 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 border border-slate-300 whitespace-nowrap hover:bg-slate-50">Pre-Entreno</button>
+                        <button onclick="filterCategory('Aminoácidos')" class="cat-btn px-3 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 border border-slate-300 whitespace-nowrap hover:bg-slate-50">Aminoácidos</button>
+                    </div>
+                </div>
+
+                <!-- Selector de Tarifa de Precio -->
+                <div class="flex items-center justify-between bg-white px-3 py-2 rounded-xl border border-slate-200 mb-3 shadow-sm">
+                    <div class="flex items-center space-x-2 text-xs font-bold text-slate-600">
+                        <i class="fa-solid fa-tags text-brand-600"></i>
+                        <span>TARIFA ACTIVA:</span>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="setPriceRate('pvp')" id="btn-rate-pvp" class="px-3 py-1 rounded-lg text-xs font-bold bg-brand-600 text-white shadow-sm transition">PVP Normal</button>
+                        <button onclick="setPriceRate('profesional')" id="btn-rate-profesional" class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Precio Profesional (con IVA)</button>
+                    </div>
+                </div>
+
+                <!-- Grid de Productos -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                    <div id="products-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                        <!-- Generado por JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN DERECHA: TICKET Y COBRO -->
+            <div class="w-full md:w-[420px] bg-white flex flex-col h-full shadow-2xl border-l border-slate-200 z-10">
+                
+                <!-- Cabecera del Ticket -->
+                <div class="p-3 bg-slate-900 text-white flex justify-between items-center">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-receipt text-brand-500"></i>
+                        <span class="font-bold text-sm">Ticket de Venta Actual</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="clearCart()" class="text-xs bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white px-2.5 py-1 rounded-lg transition" title="Vaciar Ticket">
+                            <i class="fa-solid fa-trash-can"></i> Limpiar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lista de Artículos en el Ticket -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-3 divide-y divide-slate-100" id="cart-items-container">
+                    <div class="text-center py-12 text-slate-400">
+                        <i class="fa-solid fa-cart-shopping text-4xl mb-3 text-slate-300"></i>
+                        <p class="text-sm font-medium">El ticket está vacío</p>
+                        <p class="text-xs text-slate-400 mt-1">Selecciona productos del catálogo para comenzar</p>
+                    </div>
+                </div>
+
+                <!-- Resumen y Totales -->
+                <div class="p-3 bg-slate-50 border-t border-slate-200 space-y-2">
+                    <div class="flex justify-between text-xs text-slate-500">
+                        <span>Subtotal (sin IVA):</span>
+                        <span id="cart-subtotal">0,00 €</span>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-500">
+                        <span>IVA (10% / 21%):</span>
+                        <span id="cart-tax">0,00 €</span>
+                    </div>
+                    <div class="flex justify-between text-base font-black text-slate-900 pt-1 border-t border-slate-200">
+                        <span>TOTAL A PAGAR:</span>
+                        <span id="cart-total" class="text-brand-600 text-lg">0,00 €</span>
+                    </div>
+
+                    <!-- Botones de Cobro Rápido -->
+                    <div class="grid grid-cols-2 gap-2 pt-2">
+                        <button onclick="openCheckoutModal('efectivo')" class="bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-xl font-bold text-sm shadow-md flex items-center justify-center space-x-2 transition">
+                            <i class="fa-solid fa-money-bill-wave"></i>
+                            <span>Cobrar Efectivo</span>
+                        </button>
+                        <button onclick="openCheckoutModal('tarjeta')" class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-xl font-bold text-sm shadow-md flex items-center justify-center space-x-2 transition">
+                            <i class="fa-solid fa-credit-card"></i>
+                            <span>Cobrar Tarjeta</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PESTAÑA 2: INVENTARIO & IMÁGENES ================= -->
+        <div id="section-inventory" class="absolute inset-0 bg-slate-50 flex flex-col hidden">
+            <div class="p-4 bg-white border-b border-slate-200 flex justify-between items-center shadow-sm">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800">Gestión de Catálogo e Imágenes de Productos</h2>
+                    <p class="text-xs text-slate-500">Añade, edita precios (PVP / Profesional), stock e imágenes de cada suplemento.</p>
+                </div>
+                <button onclick="openProductModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow transition flex items-center space-x-2">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Nuevo Producto</span>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-4">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 text-xs font-bold uppercase border-b border-slate-200">
+                                <th class="p-3">Imagen</th>
+                                <th class="p-3">Producto / Marca</th>
+                                <th class="p-3">Categoría</th>
+                                <th class="p-3">PVP Normal</th>
+                                <th class="p-3">Precio Profesional</th>
+                                <th class="p-3">Stock</th>
+                                <th class="p-3 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table-body" class="divide-y divide-slate-100 text-sm">
+                            <!-- Generado por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PESTAÑA 3: CONTABILIDAD MENSUAL (EXCEL STYLE) ================= -->
+        <div id="section-accounting" class="absolute inset-0 bg-slate-100 flex flex-col hidden">
+            <!-- Barra superior contabilidad -->
+            <div class="p-4 bg-white border-b border-slate-200 flex flex-col sm:flex-row justify-between items-center shadow-sm gap-3">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-emerald-100 text-emerald-700 p-2.5 rounded-xl font-bold text-lg">
+                        <i class="fa-solid fa-file-excel"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800">Cuadre de Caja y Contabilidad Mensual</h2>
+                        <p class="text-xs text-slate-500">Formato exacto de control diario por turnos (Mañana / Tarde) igual que vuestro Excel.</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <select id="accounting-month" onchange="renderAccountingSheet()" class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="10">Octubre 2026</option>
+                        <option value="11">Noviembre 2026</option>
+                        <option value="12">Diciembre 2026</option>
+                    </select>
+                    <button onclick="openDailyCloseModal()" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-bold shadow transition flex items-center space-x-2">
+                        <i class="fa-solid fa-cash-register"></i>
+                        <span>Cierre de Turno / Día</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabla Estilo Excel (Día 1 al 31) -->
+            <div class="flex-1 overflow-auto custom-scrollbar p-4">
+                <div class="bg-white rounded-2xl shadow-md border border-slate-300 overflow-hidden min-w-[1000px]">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-900 text-white font-bold text-center border-b border-slate-700">
+                                <th rowspan="2" class="p-3 border-r border-slate-700 w-16">Día</th>
+                                <th colspan="2" class="p-2 border-r border-slate-700 bg-slate-800">Turno Mañana</th>
+                                <th colspan="2" class="p-2 border-r border-slate-700 bg-slate-800">Turno Tarde</th>
+                                <th colspan="3" class="p-2 bg-slate-900">Totales del Día</th>
+                            </tr>
+                            <tr class="bg-slate-800 text-slate-300 font-semibold text-center border-b border-slate-700">
+                                <th class="p-2 border-r border-slate-700">Efectivo (€)</th>
+                                <th class="p-2 border-r border-slate-700">Tarjeta (€)</th>
+                                <th class="p-2 border-r border-slate-700">Efectivo (€)</th>
+                                <th class="p-2 border-r border-slate-700">Tarjeta (€)</th>
+                                <th class="p-2 border-r border-slate-700 text-amber-300">Total Efectivo</th>
+                                <th class="p-2 border-r border-slate-700 text-sky-300">Total Tarjeta</th>
+                                <th class="p-2 text-emerald-300 font-bold">Total General</th>
+                            </tr>
+                        </thead>
+                        <tbody id="excel-accounting-tbody" class="divide-y divide-slate-200">
+                            <!-- Generado por JS para Día 1 al 31 -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-slate-200 font-black text-slate-900 text-center border-t-2 border-slate-400 text-sm">
+                                <td class="p-3 text-left border-r border-slate-300">TOTALES MES:</td>
+                                <td id="sum-m-efec" class="p-3 border-r border-slate-300 text-right">0,00 €</td>
+                                <td id="sum-m-tarj" class="p-3 border-r border-slate-300 text-right">0,00 €</td>
+                                <td id="sum-t-efec" class="p-3 border-r border-slate-300 text-right">0,00 €</td>
+                                <td id="sum-t-tarj" class="p-3 border-r border-slate-300 text-right">0,00 €</td>
+                                <td id="sum-tot-efec" class="p-3 border-r border-slate-300 text-right text-amber-700">0,00 €</td>
+                                <td id="sum-tot-tarj" class="p-3 border-r border-slate-300 text-right text-sky-700">0,00 €</td>
+                                <td id="sum-tot-general" class="p-3 text-right text-emerald-700 text-base">0,00 €</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ================= MODAL DE COBRO ================= -->
+    <div id="checkout-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200">
+            <div class="bg-slate-900 text-white px-5 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i id="checkout-modal-icon" class="fa-solid fa-money-bill-wave text-emerald-400 text-lg"></i>
+                    <h3 id="checkout-modal-title" class="font-bold text-base">Cobrar en Efectivo</h3>
+                </div>
+                <button onclick="closeCheckoutModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center">
+                    <span class="text-sm font-bold text-slate-600">Total a Cobrar:</span>
+                    <span id="modal-total-display" class="text-2xl font-black text-brand-600">0,00 €</span>
+                </div>
+
+                <div id="cash-payment-section" class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Efectivo Recibido del Cliente (€):</label>
+                        <input type="number" id="cash-given" oninput="calculateChange()" placeholder="Ej. 50" class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-lg font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm">
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-2">
+                        <button onclick="setCashGiven(10)" class="py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-bold text-slate-700">10 €</button>
+                        <button onclick="setCashGiven(20)" class="py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-bold text-slate-700">20 €</button>
+                        <button onclick="setCashGiven(50)" class="py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-bold text-slate-700">50 €</button>
+                        <button onclick="setCashGiven(100)" class="py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-bold text-slate-700">100 €</button>
+                    </div>
+
+                    <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl flex justify-between items-center">
+                        <span class="text-xs font-bold text-amber-800 uppercase">Cambio a Devolver:</span>
+                        <span id="change-display" class="text-xl font-black text-amber-700">0,00 €</span>
+                    </div>
+                </div>
+
+                <div id="card-payment-section" class="hidden text-center py-6 space-y-3">
+                    <i class="fa-solid fa-credit-card text-5xl text-blue-600 animate-pulse"></i>
+                    <p class="text-sm font-bold text-slate-700">Esperando aprobación del Datáfono (POS)...</p>
+                </div>
+
+                <div class="pt-4 flex space-x-3">
+                    <button onclick="closeCheckoutModal()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 px-4 rounded-xl text-sm transition">Cancelar</button>
+                    <button onclick="confirmPayment()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl text-sm shadow-lg transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Confirmar Cobro</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODAL PRODUCTO E IMAGEN ================= -->
+    <div id="product-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200">
+            <div class="bg-slate-900 text-white px-5 py-4 flex justify-between items-center">
+                <h3 id="product-modal-title" class="font-bold text-base">Nuevo Producto / Suplemento</h3>
+                <button onclick="closeProductModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="product-form" onsubmit="saveProduct(event)" class="p-6 space-y-4">
+                <input type="hidden" id="prod-id">
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Nombre:</label>
+                        <input type="text" id="prod-name" required placeholder="Ej. Whey Gold 2kg" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Categoría:</label>
+                        <select id="prod-cat" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm">
+                            <option value="Proteínas">Proteínas</option>
+                            <option value="Creatina">Creatina</option>
+                            <option value="Pre-Entreno">Pre-Entreno</option>
+                            <option value="Aminoácidos">Aminoácidos</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">PVP (€):</label>
+                        <input type="number" step="0.01" id="prod-pvp" required class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Precio Prof. (€):</label>
+                        <input type="number" step="0.01" id="prod-prof" required class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Stock:</label>
+                        <input type="number" id="prod-stock" required class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm">
+                    </div>
+                </div>
+
+                <!-- GESTIÓN DE IMAGEN -->
+                <div class="space-y-2 border-t border-slate-200 pt-3">
+                    <label class="block text-xs font-bold text-slate-700">Imagen del Producto:</label>
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 rounded-xl border border-slate-300 bg-slate-100 flex items-center justify-center overflow-hidden">
+                            <i id="image-placeholder-icon" class="fa-solid fa-image text-slate-400 text-2xl"></i>
+                            <img id="image-preview" class="w-full h-full object-cover hidden" src="" alt="Prevista">
+                        </div>
+                        <div class="flex-1 space-y-2">
+                            <input type="file" id="prod-image-file" accept="image/*" onchange="handleImageUpload(event)" class="w-full text-xs text-slate-500">
+                            <input type="text" id="prod-image-url" placeholder="O pega la URL de la imagen..." class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs" oninput="updateImagePreviewFromURL()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4 flex space-x-3">
+                    <button type="button" onclick="closeProductModal()" class="flex-1 bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-sm">Cancelar</button>
+                    <button type="submit" class="flex-1 bg-brand-600 text-white font-bold py-2.5 rounded-xl text-sm shadow">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL CIERRE DE TURNO / DÍA ================= -->
+    <div id="daily-close-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-200">
+            <div class="bg-slate-900 text-white px-5 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-base"><i class="fa-solid fa-calculator text-emerald-400 mr-2"></i> Cierre de Turno y Caja</h3>
+                <button onclick="closeDailyCloseModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="p-6 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Día del Mes:</label>
+                        <select id="close-day" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm font-bold"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Turno:</label>
+                        <select id="close-shift" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm font-bold text-brand-600">
+                            <option value="mañana">Turno Mañana</option>
+                            <option value="tarde">Turno Tarde</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Efectivo (€):</label>
+                        <input type="number" step="0.01" id="close-efec" value="0.00" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm font-bold text-amber-700">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Tarjeta (€):</label>
+                        <input type="number" step="0.01" id="close-tarj" value="0.00" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm font-bold text-sky-700">
+                    </div>
+                </div>
+
+                <!-- Desglose físico de efectivo -->
+                <div class="border-t border-slate-200 pt-3 space-y-2">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase">Desglose de Billetes y Monedas:</h4>
+                    <div class="grid grid-cols-4 gap-2 text-xs">
+                        <div class="bg-slate-50 p-2 rounded-xl border flex flex-col"><span class="font-bold">50 €</span><input type="number" min="0" value="0" oninput="calculateCashDrawerTotal()" class="cash-denom mt-1 w-full p-1 border rounded text-center font-bold" data-val="50"></div>
+                        <div class="bg-slate-50 p-2 rounded-xl border flex flex-col"><span class="font-bold">20 €</span><input type="number" min="0" value="0" oninput="calculateCashDrawerTotal()" class="cash-denom mt-1 w-full p-1 border rounded text-center font-bold" data-val="20"></div>
+                        <div class="bg-slate-50 p-2 rounded-xl border flex flex-col"><span class="font-bold">10 €</span><input type="number" min="0" value="0" oninput="calculateCashDrawerTotal()" class="cash-denom mt-1 w-full p-1 border rounded text-center font-bold" data-val="10"></div>
+                        <div class="bg-slate-50 p-2 rounded-xl border flex flex-col"><span class="font-bold">5 €</span><input type="number" min="0" value="0" oninput="calculateCashDrawerTotal()" class="cash-denom mt-1 w-full p-1 border rounded text-center font-bold" data-val="5"></div>
+                    </div>
+                    <div class="flex justify-between items-center bg-emerald-50 border p-3 rounded-xl font-bold text-emerald-800 text-sm">
+                        <span>Total Contado:</span>
+                        <span id="drawer-counted-total">0,00 €</span>
+                    </div>
+                </div>
+
+                <div class="pt-4 flex space-x-3">
+                    <button onclick="closeDailyCloseModal()" class="flex-1 bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-sm">Cancelar</button>
+                    <button onclick="saveDailyClose()" class="flex-1 bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm shadow-lg">Guardar en Excel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+        let currentTab = 'pos';
+        let currentRate = 'pvp';
+        let currentCategory = 'todos';
+        let cart = [];
+        let tempImageBase64 = '';
+
+        let products = [
+            { id: 1, name: 'Whey Gold Protein 2kg', category: 'Proteínas', pvp: 59.95, prof: 48.00, stock: 18, image: 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=400&auto=format&fit=crop&q=80' },
+            { id: 2, name: 'Creatine Monohydrate 500g', category: 'Creatina', pvp: 24.95, prof: 19.50, stock: 30, image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&auto=format&fit=crop&q=80' },
+            { id: 3, name: 'Pre-Workout Explosive 300g', category: 'Pre-Entreno', pvp: 34.95, prof: 28.00, stock: 12, image: 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=400&auto=format&fit=crop&q=80' }
+        ];
+
+        let monthlyAccounting = {
+            1: { m_efec: 150.00, m_tarj: 240.00, t_efec: 320.00, t_tarj: 410.00 },
+            2: { m_efec: 180.50, m_tarj: 310.00, t_efec: 290.00, t_tarj: 520.42 },
+            3: { m_efec: 210.00, m_tarj: 190.00, t_efec: 450.00, t_tarj: 380.00 },
+            4: { m_efec: 326.28, m_tarj: 815.42, t_efec: 540.00, t_tarj: 740.00 }
+        };
+
+        window.onload = function() {
+            renderProductsGrid();
+            renderInventoryTable();
+            renderAccountingSheet();
+            populateDaysSelect();
+        };
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('section-pos').classList.add('hidden');
+            document.getElementById('section-inventory').classList.add('hidden');
+            document.getElementById('section-accounting').classList.add('hidden');
+
+            document.getElementById('tab-pos').className = "px-4 py-1.5 rounded-lg text-sm font-semibold transition text-slate-300 hover:text-white hover:bg-slate-700";
+            document.getElementById('tab-inventory').className = "px-4 py-1.5 rounded-lg text-sm font-semibold transition text-slate-300 hover:text-white hover:bg-slate-700";
+            document.getElementById('tab-accounting').className = "px-4 py-1.5 rounded-lg text-sm font-semibold transition text-slate-300 hover:text-white hover:bg-slate-700";
+
+            if (tab === 'pos') {
+                document.getElementById('section-pos').classList.remove('hidden');
+                document.getElementById('tab-pos').className = "px-4 py-1.5 rounded-lg text-sm font-semibold transition bg-brand-600 text-white shadow";
+            } else if (tab === 'inventory') {
+                document.getElementById('section-inventory').classList.remove('hidden');
+                document.getElementById('tab-inventory').className = "px-4 py-1.5 rounded-lg text-sm font-semibold transition bg-brand-600 text-white shadow";
+                renderInventoryTable();
+            } else if (tab === 'accounting') {
+                document.getElementById('section-accounting').classList.remove('hidden');
+                document.getElementById('tab-accounting').className = "px-4 py-1.5 rounded-lg text-sm font-semibold transition bg-brand-600 text-white shadow";
+                renderAccountingSheet();
+            }
+        }
+
+        function setPriceRate(rate) {
+            currentRate = rate;
+            document.getElementById('btn-rate-pvp').className = rate === 'pvp' ? "px-3 py-1 rounded-lg text-xs font-bold bg-brand-600 text-white shadow-sm transition" : "px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
+            document.getElementById('btn-rate-profesional').className = rate === 'profesional' ? "px-3 py-1 rounded-lg text-xs font-bold bg-brand-600 text-white shadow-sm transition" : "px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
+            renderProductsGrid();
+            updateCartDisplay();
+        }
+
+        function filterCategory(cat) {
+            currentCategory = cat;
+            renderProductsGrid();
+        }
+
+        function filterProducts() { renderProductsGrid(); }
+
+        function renderProductsGrid() {
+            const query = document.getElementById('product-search').value.toLowerCase();
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = '';
+
+            const filtered = products.filter(p => {
+                const matchesCat = currentCategory === 'todos' || p.category === currentCategory;
+                const matchesQuery = p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query);
+                return matchesCat && matchesQuery;
+            });
+
+            filtered.forEach(p => {
+                const price = currentRate === 'pvp' ? p.pvp : p.prof;
+                const imgSrc = p.image || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&auto=format&fit=crop&q=80';
+                
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl p-3 border border-slate-200 shadow-sm hover:shadow-md transition cursor-pointer flex flex-col justify-between group";
+                card.onclick = () => addToCart(p.id);
+                card.innerHTML = `
+                    <div class="relative h-28 rounded-xl overflow-hidden bg-slate-100 mb-2">
+                        <img src="${imgSrc}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                        <span class="absolute top-2 right-2 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">Stock: ${p.stock}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-brand-600 uppercase">${p.category}</span>
+                        <h4 class="font-bold text-xs text-slate-800 line-clamp-2 mt-0.5">${p.name}</h4>
+                    </div>
+                    <div class="mt-2 pt-2 border-t border-slate-100 flex justify-between items-center">
+                        <span class="text-sm font-black text-slate-900">${price.toFixed(2)} €</span>
+                        <span class="w-7 h-7 bg-brand-50 text-brand-600 rounded-lg flex items-center justify-center font-bold group-hover:bg-brand-600 group-hover:text-white transition">+</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            const existing = cart.find(item => item.id === productId);
+            const price = currentRate === 'pvp' ? product.pvp : product.prof;
+
+            if (existing) existing.quantity++;
+            else cart.push({ id: product.id, name: product.name, price: price, quantity: 1 });
+            updateCartDisplay();
+        }
+
+        function updateCartQuantity(productId, delta) {
+            const item = cart.find(i => i.id === productId);
+            if (!item) return;
+            item.quantity += delta;
+            if (item.quantity <= 0) cart = cart.filter(i => i.id !== productId);
+            updateCartDisplay();
+        }
+
+        function clearCart() { cart = []; updateCartDisplay(); }
+
+        function updateCartDisplay() {
+            const container = document.getElementById('cart-items-container');
+            container.innerHTML = '';
+            if (cart.length === 0) {
+                container.innerHTML = `<div class="text-center py-12 text-slate-400"><p class="text-sm font-medium">El ticket está vacío</p></div>`;
+                document.getElementById('cart-subtotal').innerText = '0,00 €';
+                document.getElementById('cart-tax').innerText = '0,00 €';
+                document.getElementById('cart-total').innerText = '0,00 €';
+                return;
+            }
+
+            let subtotal = 0;
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+                const div = document.createElement('div');
+                div.className = "py-2.5 flex justify-between items-center";
+                div.innerHTML = `
+                    <div class="flex-1 pr-2"><h5 class="text-xs font-bold text-slate-800">${item.name}</h5><p class="text-[11px] text-slate-500">${item.price.toFixed(2)} €</p></div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="updateCartQuantity(${item.id}, -1)" class="w-6 h-6 bg-slate-100 rounded-lg text-xs font-bold">-</button>
+                        <span class="text-xs font-bold w-5 text-center">${item.quantity}</span>
+                        <button onclick="updateCartQuantity(${item.id}, 1)" class="w-6 h-6 bg-slate-100 rounded-lg text-xs font-bold">+</button>
+                        <span class="text-xs font-black text-slate-900 w-14 text-right">${itemTotal.toFixed(2)} €</span>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+            document.getElementById('cart-subtotal').innerText = (subtotal * 0.9).toFixed(2) + ' €';
+            document.getElementById('cart-tax').innerText = (subtotal * 0.1).toFixed(2) + ' €';
+            document.getElementById('cart-total').innerText = subtotal.toFixed(2) + ' €';
+        }
+
+        let paymentMethodType = 'efectivo';
+        function openCheckoutModal(method) {
+            if (cart.length === 0) { alert('Ticket vacío'); return; }
+            paymentMethodType = method;
+            const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+            document.getElementById('modal-total-display').innerText = total.toFixed(2) + ' €';
+            document.getElementById('checkout-modal').classList.remove('hidden');
+        }
+        function closeCheckoutModal() { document.getElementById('checkout-modal').classList.add('hidden'); }
+        function setCashGiven(amount) { document.getElementById('cash-given').value = amount; calculateChange(); }
+        function calculateChange() {
+            const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+            const given = parseFloat(document.getElementById('cash-given').value) || 0;
+            document.getElementById('change-display').innerText = (given - total).toFixed(2) + ' €';
+        }
+        function confirmPayment() {
+            const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+            if (!monthlyAccounting[4]) monthlyAccounting[4] = { m_efec: 0, m_tarj: 0, t_efec: 0, t_tarj: 0 };
+            if (paymentMethodType === 'efectivo') monthlyAccounting[4].t_efec += total;
+            else monthlyAccounting[4].t_tarj += total;
+            alert('¡Cobro registrado!');
+            cart = []; updateCartDisplay(); closeCheckoutModal(); renderAccountingSheet();
+        }
+
+        // INVENTARIO & IMÁGENES
+        function renderInventoryTable() {
+            const tbody = document.getElementById('inventory-table-body');
+            tbody.innerHTML = '';
+            products.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-slate-100 hover:bg-slate-50";
+                tr.innerHTML = `
+                    <td class="p-3"><img src="${p.image}" class="w-10 h-10 object-cover rounded-xl border"></td>
+                    <td class="p-3 font-bold text-slate-800">${p.name}</td>
+                    <td class="p-3"><span class="bg-slate-100 px-2 py-0.5 rounded-lg text-xs font-bold">${p.category}</span></td>
+                    <td class="p-3 font-bold">${p.pvp.toFixed(2)} €</td>
+                    <td class="p-3 font-bold text-brand-600">${p.prof.toFixed(2)} €</td>
+                    <td class="p-3 font-bold">${p.stock} uds</td>
+                    <td class="p-3 text-center"><button onclick="editProduct(${p.id})" class="p-2 bg-slate-100 rounded-lg text-xs font-bold"><i class="fa-solid fa-pen-to-square"></i></button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        function openProductModal(id = null) {
+            document.getElementById('product-modal').classList.remove('hidden');
+            tempImageBase64 = '';
+            if (id) {
+                const p = products.find(x => x.id === id);
+                document.getElementById('prod-id').value = p.id;
+                document.getElementById('prod-name').value = p.name;
+                document.getElementById('prod-pvp').value = p.pvp;
+                document.getElementById('prod-prof').value = p.prof;
+                document.getElementById('prod-stock').value = p.stock;
+                document.getElementById('image-preview').src = p.image;
+                document.getElementById('image-preview').classList.remove('hidden');
+                document.getElementById('image-placeholder-icon').classList.add('hidden');
+            } else {
+                document.getElementById('product-form').reset();
+                document.getElementById('prod-id').value = '';
+                document.getElementById('image-preview').classList.add('hidden');
+                document.getElementById('image-placeholder-icon').classList.remove('hidden');
+            }
+        }
+        function closeProductModal() { document.getElementById('product-modal').classList.add('hidden'); }
+        function editProduct(id) { openProductModal(id); }
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    tempImageBase64 = evt.target.result;
+                    document.getElementById('image-preview').src = tempImageBase64;
+                    document.getElementById('image-preview').classList.remove('hidden');
+                    document.getElementById('image-placeholder-icon').classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        function updateImagePreviewFromURL() {
+            const url = document.getElementById('prod-image-url').value;
+            if (url) {
+                tempImageBase64 = url;
+                document.getElementById('image-preview').src = url;
+                document.getElementById('image-preview').classList.remove('hidden');
+                document.getElementById('image-placeholder-icon').classList.add('hidden');
+            }
+        }
+        function saveProduct(e) {
+            e.preventDefault();
+            const id = document.getElementById('prod-id').value;
+            const name = document.getElementById('prod-name').value;
+            const category = document.getElementById('prod-cat').value;
+            const pvp = parseFloat(document.getElementById('prod-pvp').value);
+            const prof = parseFloat(document.getElementById('prod-prof').value);
+            const stock = parseInt(document.getElementById('prod-stock').value);
+            const image = tempImageBase64 || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&auto=format&fit=crop&q=80';
+
+            if (id) {
+                const p = products.find(x => x.id == id);
+                p.name = name; p.category = category; p.pvp = pvp; p.prof = prof; p.stock = stock; p.image = image;
+            } else {
+                products.push({ id: products.length + 1, name, category, pvp, prof, stock, image });
+            }
+            closeProductModal(); renderInventoryTable(); renderProductsGrid();
+        }
+
+        // CONTABILIDAD MENSUAL EXCEL (Día 1 a 31)
+        function renderAccountingSheet() {
+            const tbody = document.getElementById('excel-accounting-tbody');
+            tbody.innerHTML = '';
+            let sumMEfec = 0, sumMTarj = 0, sumTEfec = 0, sumTTarj = 0, sumTotEfec = 0, sumTotTarj = 0, sumTotGeneral = 0;
+
+            for (let day = 1; day <= 31; day++) {
+                const data = monthlyAccounting[day] || { m_efec: 0, m_tarj: 0, t_efec: 0, t_tarj: 0 };
+                const m_efec = data.m_efec || 0, m_tarj = data.m_tarj || 0, t_efec = data.t_efec || 0, t_tarj = data.t_tarj || 0;
+                const tot_efec = m_efec + t_efec, tot_tarj = m_tarj + t_tarj, tot_general = tot_efec + tot_tarj;
+
+                sumMEfec += m_efec; sumMTarj += m_tarj; sumTEfec += t_efec; sumTTarj += t_tarj;
+                sumTotEfec += tot_efec; sumTotTarj += tot_tarj; sumTotGeneral += tot_general;
+
+                const tr = document.createElement('tr');
+                tr.className = "text-center " + (day % 2 === 0 ? 'bg-slate-50' : 'bg-white');
+                tr.innerHTML = `
+                    <td class="p-2.5 font-bold border-r bg-slate-100">Día ${day}</td>
+                    <td class="p-2.5 border-r text-right">${m_efec > 0 ? m_efec.toFixed(2) + ' €' : '-'}</td>
+                    <td class="p-2.5 border-r text-right">${m_tarj > 0 ? m_tarj.toFixed(2) + ' €' : '-'}</td>
+                    <td class="p-2.5 border-r text-right">${t_efec > 0 ? t_efec.toFixed(2) + ' €' : '-'}</td>
+                    <td class="p-2.5 border-r text-right">${t_tarj > 0 ? t_tarj.toFixed(2) + ' €' : '-'}</td>
+                    <td class="p-2.5 border-r text-right font-bold text-amber-700 bg-amber-50/30">${tot_efec > 0 ? tot_efec.toFixed(2) + ' €' : '-'}</td>
+                    <td class="p-2.5 border-r text-right font-bold text-sky-700 bg-sky-50/30">${tot_tarj > 0 ? tot_tarj.toFixed(2) + ' €' : '-'}</td>
+                    <td class="p-2.5 text-right font-bold text-emerald-700 bg-emerald-50/40">${tot_general > 0 ? tot_general.toFixed(2) + ' €' : '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+
+            document.getElementById('sum-m-efec').innerText = sumMEfec.toFixed(2) + ' €';
+            document.getElementById('sum-m-tarj').innerText = sumMTarj.toFixed(2) + ' €';
+            document.getElementById('sum-t-efec').innerText = sumTEfec.toFixed(2) + ' €';
+            document.getElementById('sum-t-tarj').innerText = sumTTarj.toFixed(2) + ' €';
+            document.getElementById('sum-tot-efec').innerText = sumTotEfec.toFixed(2) + ' €';
+            document.getElementById('sum-tot-tarj').innerText = sumTotTarj.toFixed(2) + ' €';
+            document.getElementById('sum-tot-general').innerText = sumTotGeneral.toFixed(2) + ' €';
+        }
+
+        function populateDaysSelect() {
+            const select = document.getElementById('close-day');
+            for (let i = 1; i <= 31; i++) {
+                const opt = document.createElement('option');
+                opt.value = i; opt.innerText = `Día ${i}`;
+                if (i === 4) opt.selected = true;
+                select.appendChild(opt);
+            }
+        }
+        function openDailyCloseModal() { document.getElementById('daily-close-modal').classList.remove('hidden'); }
+        function closeDailyCloseModal() { document.getElementById('daily-close-modal').classList.add('hidden'); }
+        function calculateCashDrawerTotal() {
+            let total = 0;
+            document.querySelectorAll('.cash-denom').forEach(input => {
+                total += parseFloat(input.getAttribute('data-val')) * (parseInt(input.value) || 0);
+            });
+            document.getElementById('drawer-counted-total').innerText = total.toFixed(2) + ' €';
+            document.getElementById('close-efec').value = total.toFixed(2);
+        }
+        function saveDailyClose() {
+            const day = parseInt(document.getElementById('close-day').value);
+            const shift = document.getElementById('close-shift').value;
+            const efec = parseFloat(document.getElementById('close-efec').value) || 0;
+            const tarj = parseFloat(document.getElementById('close-tarj').value) || 0;
+
+            if (!monthlyAccounting[day]) monthlyAccounting[day] = { m_efec: 0, m_tarj: 0, t_efec: 0, t_tarj: 0 };
+            if (shift === 'mañana') { monthlyAccounting[day].m_efec = efec; monthlyAccounting[day].m_tarj = tarj; }
+            else { monthlyAccounting[day].t_efec = efec; monthlyAccounting[day].t_tarj = tarj; }
+
+            alert('Cierre guardado correctamente.');
+            closeDailyCloseModal(); renderAccountingSheet();
+        }
+    </script>
+</body>
+</html>
+
