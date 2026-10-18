@@ -2,5 +2,7 @@
   "name": "IO.GENIX TPV & Control de Caja",
   "description": "Terminal Punto de Venta táctil, arqueo de caja con desglose de billetes y monedas estilo Lumier, tarifas PVP/Profesional y control de turnos para distribuidora IO.GENIX.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }
